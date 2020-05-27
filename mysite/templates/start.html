@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<header></header>
+<body>
+<script>
+var cyclistArtIn = ["------__o", "-----_\ <,_", "----(_)/ (_)"];
+var cyclistArt = cyclistArtIn.slice(0, 3);
+
+class StateChanges {
+    constructor() {
+        this.status = false;
+    }
+
+    changeStatus(newStatus) {
+        this.status = newStatus;
+    }
+
+    getStatus() {
+        return this.status;
+    }
+}
+
+var resultReceived = new StateChanges();
+
+function debugWrite(txt) {
+    document.getElementById("adresses").value += txt;
+}
+
+function request(type, url, data, callback) {
+    var req = new XMLHttpRequest();
+    req.open(type, url, true);
+    if (data != false) {
+        req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    }
+    req.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            callback(req.responseText);
+        }
+    }
+
+    if (data != false) {
+        req.send(data);
+    } else {
+        req.send();
+    }
+}
+
+function reportProgress(txt) {
+    if (resultReceived.getStatus() == false) {
+        updateTextEdit(txt);
+    }
+}
+
+function updateTextEdit(txt, clear = false) {
+    if (clear) {
+        document.getElementById("adresses").value = txt;
+    } else {
+        document.getElementById("adresses").value += txt;
+    }
+}
+
+
+function requestProgress() {
+    if (resultReceived.getStatus() == false) {
+        request('GET', '/other?getprogress', false, reportProgress);
+    }
+}
+
+function onReceiveResult(txt) {
+    resultReceived.changeStatus(true);
+    updateTextEdit(txt, true);
+    buildMapLinks();
+}
+
+function submitAdresses() {
+    var adr = "adresses=";
+    var data = adr.concat(encodeURI(document.getElementById("adresses").value));
+    var oneway = "oneway=";
+    var val = document.getElementById("oneway").checked ? "1" : "0";
+    data = data.concat("&oneway=", encodeURI(val));
+    updateTextEdit("", true);
+    request('POST', '/other', data, onReceiveResult);
+}
+
+function loadProgress() {
+    if (resultReceived.getStatus() == false) {
+        cyclistArt[0] = '-' + cyclistArt[0];
+        cyclistArt[1] = '-' + cyclistArt[1];
+        cyclistArt[2] = '-' + cyclistArt[2];
+
+        if (cyclistArt[2].length == 80) {
+            cyclistArt = cyclistArtIn.slice(0, 3);
+        }
+
+        updateTextEdit(cyclistArt.join(String.fromCharCode(10)), true);
+        requestProgress();
+        setTimeout(loadProgress, 500);
+    }
+}
+
+
+
+function doSubmit() {
+    resultReceived.changeStatus(false);
+    document.getElementById("map").innerHTML = "";
+    submitAdresses();
+    loadProgress();
+}
+
+function buildMapLinks() {
+    // we read the data from the text edit and build links between each pair
+    var googleMapDirUrl = "https://www.google.co.uk/maps/dir/%s/%s/data=!4m2!4m1!3e1"
+
+    var addresses = document.getElementById("adresses").value.split(';');
+
+    document.getElementById("map").innerHTML += "<br><br><strong>Legs on google maps:</strong><br>";
+
+    // loop over addresses an build legs
+    for (var i = 1; i < addresses.length; ++i) {
+        var a = addresses[i - 1].replace(" ", "+");
+        var b = addresses[i].replace(" ", "+");
+        leg = "https://www.google.co.uk/maps/dir/" + a + "/" + b + "/data=!4m2!4m1!3e1"
+        //document.getElementById("map").innerHTML += '<a href="' + leg + '">' + "Leg " + addresses[i - 1] + " to " + addresses[i] + '</a><br>';
+        document.getElementById("map").innerHTML += '<a href="' + leg + '" target="_blank">' + "Leg " + i + '</a><br>';
+    }
+
+}
+</script>
+<h1 style="font-family: Helvetica;">Agile Route Calculator</h1>
+<form >
+  <textarea rows = "10" cols = "80" id="adresses" name="adresses">{{ addresses }}</textarea><br>
+  <input type="checkbox" id="oneway" name="oneway" value = "useOneWay"><label for="oneway">One Way*</label><br>
+  <input type="button" value="Calculate" onClick = "doSubmit();">
+</form>
+<div id="map">
+    {% if maproute %}
+        {{ maproute }}
+    {% else %}
+        <p style="font-size: smaller;">(*) One Way checked: A shortest route from first to last destination<br>
+                                           in the list is returned, otherwise it returns close to the first in list.
+        </p>
+    {% endif %}
+</div>
+</body>
+</html>
