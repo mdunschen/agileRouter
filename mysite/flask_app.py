@@ -16,7 +16,7 @@ import tempfile, shutil
 
 
 app = Flask(__name__)
-app.secret_key = b'xyz///1245'
+app.secret_key = open("/home/agile/mysite/secret.key").read()
 
 def getUniqId(N):
     return ''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=N))
