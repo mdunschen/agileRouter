@@ -3,9 +3,11 @@
 <head>
     <title>Agile Route Planner App</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.0/jquery.mobile-1.0.min.css" />
-	<script type="text/javascript" src="http://code.jquery.com/jquery-1.6.4.min.js"></script>
-	<script type="text/javascript" src="http://code.jquery.com/mobile/1.0/jquery.mobile-1.0.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+	<script src="https://code.jquery.com/jquery-1.12.4.min.js"
+			integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
+			crossorigin="anonymous"></script>
+	<script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
     <script>
     var cyclistArtIn = ["------__o", "-----_\ <,_", "----(_)/ (_)"];
     var cyclistArt = cyclistArtIn.slice(0, 3);
@@ -111,6 +113,23 @@
         loadProgress();
     }
 
+    function onLegDone(iLeg) {
+        // write the time it was done into the label
+        var lab = document.getElementById("labelLeg" + iLeg);
+        options = {
+            year: 'numeric', month: 'numeric', day: 'numeric',
+            hour: 'numeric', minute: 'numeric', second: 'numeric',
+            hour12: false };
+        var d = new Date();
+        var fmt = new Intl.DateTimeFormat('en-GB', options);
+        lab.innerHTML = fmt.format(d);
+
+        // disable checkbox
+        var box = document.getElementById("leg" + iLeg);
+        box.disabled = true;
+
+    }
+
     function buildMapLinks() {
         // we read the data from the text edit and build links between each pair
         var googleMapDirUrl = "https://www.google.co.uk/maps/dir/%s/%s/data=!4m2!4m1!3e1"
@@ -120,12 +139,19 @@
         document.getElementById("map").innerHTML += "<br><br><strong>Legs on google maps:</strong><br>";
 
         // loop over addresses an build legs
+        var legTable = '<table>';
+        legTable += '<tr><th>Leg</th><th colspan=2>Done</th></tr>';
         for (var i = 1; i < addresses.length; ++i) {
             var a = addresses[i - 1].replace(" ", "+");
             var b = addresses[i].replace(" ", "+");
-            leg = "https://www.google.co.uk/maps/dir/" + a + "/" + b + "/data=!4m2!4m1!3e1"
-            document.getElementById("map").innerHTML += '<a href="' + leg + '" target="_blank">' + "Leg " + i + '</a><br>';
+            var leg = "https://www.google.co.uk/maps/dir/" + a + "/" + b + "/data=!4m2!4m1!3e1"
+            var legLink = '<a href="' + leg + '" target="_blank">' + "Leg " + i + '</a>'
+            var checkBox = '<input type="checkbox" id="leg' + i + '" value = "legDone" onClick = "onLegDone(' + i + ');">';
+            var lab = '<label id="labelLeg' + i + '" for="leg' + i + '">Done</label>';
+            legTable += '<tr><td>' + legLink + '</td><td>' + checkBox + '</td><td>' + lab + '</td></tr>';
         }
+        legTable += '</table>';
+        document.getElementById("map").innerHTML += legTable;
 
     }
     </script>
@@ -133,7 +159,7 @@
 <body>
 <div data-role="page">
 
-	<div data-role="header"><h1 style="font-family: Helvetica;">Agile Route Calculator</h1></div>
+	<div data-role="header"><h1 style="font-family: Helvetica;">Agile Route Planner</h1></div>
     <div data-role="content">
         <form >
             <div class = "ui-field-contain">
@@ -142,7 +168,7 @@
                 <input type="button" value="Calculate" onClick = "doSubmit();">
             </div>
         </form>
-        <div id="map">
+        <div class = "ui-field-contain" id="map">
             {% if maproute %}
                 {{ maproute }}
             {% else %}
