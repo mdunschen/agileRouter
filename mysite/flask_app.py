@@ -76,7 +76,7 @@ def other():
         # who is 'logged in'?
         return app.make_response(flask_login.current_user.getProgTxt())
 
-    return render_template("start.html", addresses="Addresses (separate by ';')", mapRoute="")
+    return render_template("start.html", addresses="", mapRoute="")
 
 
 @app.route('/router', methods=['GET', 'POST'])
