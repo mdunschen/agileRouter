@@ -68,7 +68,7 @@
 
     function requestProgress() {
         if (resultReceived.getStatus() == false) {
-            request('GET', '/other?getprogress', false, reportProgress);
+            request('GET', '/router?getprogress', false, reportProgress);
         }
     }
 
@@ -85,7 +85,7 @@
         var val = document.getElementById("oneway").checked ? "1" : "0";
         data = data.concat("&oneway=", encodeURI(val));
         updateTextEdit("", true);
-        request('POST', '/other', data, onReceiveResult);
+        request('POST', '/router', data, onReceiveResult);
     }
 
     function loadProgress() {

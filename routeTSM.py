@@ -76,10 +76,10 @@ cycGeoCoder = "https://api.cyclestreets.net/v2/geocoder?key=%s&%s"
 
 apiUse = "cycleStreets"
 
-hwgKey = pickle.load(open("hwg.key", "rb"))
+hwgKey = pickle.load(open("/home/agile/hwg.key", "rb"))
 
 hwgUrl = "https://router.hereapi.com/v8/routes?apiKey=%s&transportMode=pedestrian&origin=%s&destination=%s&return=summary"
-cyclestreetskey = pickle.load(open("cyclestreets.key", "rb"))
+cyclestreetskey = pickle.load(open("/home/agile/cyclestreets.key", "rb"))
 
 googleMapDirUrl = "https://www.google.co.uk/maps/dir/%s/%s/data=!4m2!4m1!3e1"
 

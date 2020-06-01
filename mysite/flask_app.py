@@ -3,10 +3,9 @@
 import sys, os
 sys.path.append('/home/agile')
 
-from agileRouter import main
-from agileRouterAjax import main as mmain
+from agileRouterAjax import main
 
-from flask import Flask, request
+from flask import Flask, request, redirect, url_for
 from flask import render_template
 import flask_login
 
@@ -56,8 +55,8 @@ class Progress:
         os.remove(tmp[1])
 
 
-@app.route('/other', methods=['GET', 'POST'])
-def other():
+@app.route('/router', methods=['GET', 'POST'])
+def router():
     adrIn = None
     adrOut = ""
     if request.method == 'POST' and 'adresses' in request.form:
@@ -68,7 +67,7 @@ def other():
         user = User(getUniqId(8))
         flask_login.login_user(user)
         p = Progress(flask_login.current_user.progressFn)
-        adrOut = mmain(adrIn, useOneWay, p)
+        adrOut = main(adrIn, useOneWay, p)
         return adrOut
 
     elif request.method == 'GET' and 'getprogress' in request.args:
@@ -79,20 +78,7 @@ def other():
     return render_template("start.html", addresses="", mapRoute="")
 
 
-@app.route('/router', methods=['GET', 'POST'])
-def router():
-    adrIn = ""
-    f = open("/home/agile/test.log", "a")
-    f.write("request: %s\n" % str(request))
-    #f.write("keys: %s\n" % str(list(request.form.keys())))
-    ff = request.form
-    for key in ff.keys():
-        for value in ff.getlist(key):
-            f.write("%s:%s\n" % (key, value))
-    if request.method == 'POST':  #this block is only entered when the form is submitted
-        adrIn = request.form.get('adresses')
-
-
-    f.close()
-    return main(adrIn)
+@app.route('/other', methods=['GET', 'POST'])
+def other():
+    return redirect(url_for('router'))
 
