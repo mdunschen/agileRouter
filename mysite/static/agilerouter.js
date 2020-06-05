@@ -119,13 +119,12 @@
 
     }
 
+    var mapLegs = new Array();
     function buildMapLinks() {
         // we read the data from the text edit and build links between each pair
         var googleMapDirUrl = "https://www.google.co.uk/maps/dir/%s/%s/data=!4m2!4m1!3e1"
 
         var addresses = document.getElementById("adresses").value.split(';');
-
-        document.getElementById("map").innerHTML += "<br><br><strong>Legs on google maps:</strong><br>";
 
         // loop over addresses an build legs
         var legList = '<div class="grid-container">';
@@ -140,6 +139,9 @@
         }
         legList += '</div>';
         document.getElementById("map").innerHTML += legList;
+
+        // make controls visible:
+        document.getElementById("controls").style.display = "block";
 
         //var stackedCard = new stackedCards({
     	// 	selector: '.legs',
