@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" type="text/css" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
 	<!-- <link rel="stylesheet" type="txt/css" href="{{ url_for('static', filename='stackedCards.css')}}" /> -->
-	<link rel="stylesheet" type="txt/css" href="{{ url_for('static', filename='style.css')}}" />
+	<link rel="stylesheet" type="txt/css" href="{{ url_for('static', filename='css/style.css')}}" />
 	<script src="https://code.jquery.com/jquery-1.12.4.min.js"
 			integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
 			crossorigin="anonymous"></script>
 	<script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
-    <script src="{{ url_for('static', filename='agilerouter.js')}}"></script>
     <!-- <script src="{{ url_for('static', filename='stackedCards.min.js')}}"></script> -->
 </head>
 <body>
@@ -25,23 +24,23 @@
                 <input type="button" value="Calculate" onClick = "doSubmit();">
             </div>
         </form>
-        <div class = "ui-field-contain" id="map">
-            {% if maproute %}
-                {{ maproute }}
-            {% else %}
-                <p style="font-size: smaller;">(*) One Way checked: A shortest route from first to last destination in the list is returned, otherwise it returns close to the first in list.
-                </p>
-            {% endif %}
-
-
-
+        <div class = "ui-field-contain slider-container-outer" id="map" style="overflow: hidden;">
+            <div id="slider-container" style="display: flex; flex-wrap: nowrap; flex-direction: row;">
+                {% if maproute %}
+                    {{ maproute }}
+                {% else %}
+                    <p style="font-size: smaller;">(*) One Way checked: A shortest route from first to last destination in the list is returned, otherwise it returns close to the first in list.
+                    </p>
+                {% endif %}
+            </div>
         </div>
         <div id="controls" class="ui-grid-b" style="display: none;">
-        	<div class="ui-block-a"><button data-theme="a">Back</button></div>
-        	<div class="ui-block-b"><button data-theme="a">Stamp</button></div>
-        	<div class="ui-block-c"><button data-theme="a">Fwd</button></div>
+        	<div class="ui-block-a"><button data-theme="a" id="back">Back</button></div>
+        	<div class="ui-block-b"><button data-theme="a" id="stamp">Stamp</button></div>
+        	<div class="ui-block-c"><button data-theme="a" id="forward">Fwd</button></div>
         </div>
     </div>
 </div>
+<script src="{{ url_for('static', filename='agilerouter.js')}}"></script>
 </body>
 </html>
