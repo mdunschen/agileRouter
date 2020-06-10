@@ -2,27 +2,25 @@
 <html lang="en">
 <head>
     <title>Agile Route Planner App</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" type="text/css" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
-	<!-- <link rel="stylesheet" type="txt/css" href="{{ url_for('static', filename='stackedCards.css')}}" /> -->
-	<link rel="stylesheet" type="txt/css" href="{{ url_for('static', filename='style.css')}}" />
-	<script src="https://code.jquery.com/jquery-1.12.4.min.js"
-			integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
-			crossorigin="anonymous"></script>
-	<script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
-    <script src="{{ url_for('static', filename='agilerouter.js')}}"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <!-- <script src="{{ url_for('static', filename='stackedCards.min.js')}}"></script> -->
 </head>
 <body>
-<div data-role="page">
+<div class="container">
 
-	<div data-role="header"><h1 style="font-family: Helvetica;">Agile Route Planner</h1></div>
+	<nav class="navbar navbar-light bg-light"><a class="navbar-brand" href='#'>Agile Route Planner</a></nav>
     <div data-role="content">
         <form >
-            <div class = "ui-field-contain">
-                <textarea rows=10 cols=80 autogrow=on autocorrect=off placeholder = "Addresses (separate with ';')" id="adresses" name="adresses">{{ addresses }}</textarea><br>
-                <input type="checkbox" id="oneway" name="oneway" value = "useOneWay"><label for="oneway">One Way*</label><br>
-                <input type="button" value="Calculate" onClick = "doSubmit();">
+            <div class = "form-group">
+                <textarea class = "form-control" autogrow=on autocorrect=off placeholder = "Addresses (separate with ';')" id="adresses" name="adresses">{{ addresses }}</textarea><br>
+                <input type="button" class="btn btn-primary" value="Calculate" onClick = "doSubmit();">
+            </div>
+            <div class = "form-check">
+                <input type="checkbox" class="form-check-input" id="oneway" name="oneway" value = "useOneWay"><label class="form-check label" for="oneway">One Way*</label><br>
             </div>
         </form>
         <div class = "ui-field-contain" id="map">
@@ -35,5 +33,9 @@
         </div>
     </div>
 </div>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script src="{{ url_for('static', filename='agilerouter.js')}}"></script>
 </body>
 </html>
