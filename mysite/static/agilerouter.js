@@ -97,7 +97,7 @@
 
     function doSubmit() {
         resultReceived.changeStatus(false);
-        document.getElementById("map").innerHTML = "";
+        document.getElementById("results").innerHTML = "";
         submitAdresses();
         loadProgress();
     }
@@ -125,10 +125,10 @@
 
         var addresses = document.getElementById("adresses").value.split(';');
 
-        document.getElementById("map").innerHTML += "<br><br><strong>Legs on google maps:</strong><br>";
+        document.getElementById("results").innerHTML += "<br><br><strong>Legs on google maps:</strong><br>";
 
         // loop over addresses an build legs
-        var legList = '<div class="grid-container">';
+        var legList = '<div class="carousel-inner">';
         for (var i = 1; i < addresses.length; ++i) {
             var a = addresses[i - 1].replace(" ", "+");
             var b = addresses[i].replace(" ", "+");
@@ -136,17 +136,24 @@
             var legLink = '<a href="' + leg + '" target="_blank">' + "Leg " + i + '</a>'
             var checkBox = '<input type="checkbox" id="leg' + i + '" value = "legDone" onClick = "onLegDone(' + i + ');">';
             var lab = '<label id="labelLeg' + i + '" for="leg' + i + '">Time</label>';
-            legList += '<div class="grid-item">' + legLink + '</div><div class="grid-item">'+ checkBox + '</div><div class="grid-item">' + lab + '</div>';
+            var divitem = '<div class="carousel-item';
+            if (i == 1) {
+                divitem += ' active';
+            }
+            legList += divitem + '"><div style="margin:auto; width:50%;">' + legLink + checkBox + lab + '</div></div>';
         }
         legList += '</div>';
-        document.getElementById("map").innerHTML += legList;
+        var controls = `
+          <a class="carousel-control-prev" href="#map" role="button" data-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true">Previous</span>
+          <span class="sr-only">Previous</span>
+          </a>
+          <a class="carousel-control-next" href="#map" role="button" data-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true">Next</span>
+          <span class="sr-only">Next</span>
+          </a>`;
+        document.getElementById("results").innerHTML += '<div id="map" class="carousel slide">' + legList + controls + '</div>';
 
-        //var stackedCard = new stackedCards({
-    	// 	selector: '.legs',
-    	// 	layout: "slide",
-    	// 	transformOrigin: "center",
-    	//});
-
-    	//stackedCard.init();
+        $('.carousel').carousel('pause');
     }
 

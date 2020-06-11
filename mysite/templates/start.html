@@ -7,7 +7,7 @@
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <!-- <script src="{{ url_for('static', filename='stackedCards.min.js')}}"></script> -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 <div class="container">
@@ -23,7 +23,7 @@
                 <input type="checkbox" class="form-check-input" id="oneway" name="oneway" value = "useOneWay"><label class="form-check label" for="oneway">One Way*</label><br>
             </div>
         </form>
-        <div class = "ui-field-contain" id="map">
+        <div id="results">
             {% if maproute %}
                 {{ maproute }}
             {% else %}
