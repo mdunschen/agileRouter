@@ -102,21 +102,22 @@
         loadProgress();
     }
 
-    function onLegDone(iLeg) {
-        // write the time it was done into the label
-        var lab = document.getElementById("labelLeg" + iLeg);
-        options = {
-            year: 'numeric', month: 'numeric', day: 'numeric',
-            hour: 'numeric', minute: 'numeric', second: 'numeric',
-            hour12: false };
-        var d = new Date();
-        var fmt = new Intl.DateTimeFormat('en-GB', options);
-        lab.innerHTML = fmt.format(d);
+    function stampActive() {
 
-        // disable checkbox
-        var box = document.getElementById("leg" + iLeg);
-        box.disabled = true;
-
+        $(".carousel-item").each(function(i) {
+            if ($(this).hasClass("active")) {
+                options = {
+                    year: 'numeric', month: 'numeric', day: 'numeric',
+                    hour: 'numeric', minute: 'numeric', second: 'numeric',
+                    hour12: false };
+                var d = new Date();
+                var fmt = new Intl.DateTimeFormat('en-GB', options);
+                var t = $("#leg" + (i+1)).text();
+                if (t.indexOf("/") == -1) { // stamp only if it has no timestamp yet
+                    $("#leg" + (i+1)).text(t + ' ' + fmt.format(d));
+                }
+            }
+        });
     }
 
     function buildMapLinks() {
@@ -133,14 +134,12 @@
             var a = addresses[i - 1].replace(" ", "+");
             var b = addresses[i].replace(" ", "+");
             var leg = "https://www.google.co.uk/maps/dir/" + a + "/" + b + "/data=!4m2!4m1!3e1"
-            var legLink = '<a href="' + leg + '" target="_blank">' + "Leg " + i + '</a>'
-            var checkBox = '<input type="checkbox" id="leg' + i + '" value = "legDone" onClick = "onLegDone(' + i + ');">';
-            var lab = '<label id="labelLeg' + i + '" for="leg' + i + '">Time</label>';
+            var legLink = '<a href="' + leg + '" target="_blank" id="leg' + i + '" role="button">' + "Leg " + i + '</a>'
             var divitem = '<div class="carousel-item';
             if (i == 1) {
                 divitem += ' active';
             }
-            legList += divitem + '"><div style="margin:auto; width:50%;">' + legLink + checkBox + lab + '</div></div>';
+            legList += divitem + '"><div class="maplink">' + legLink + '</div></div>';
         }
         legList += '</div>';
         var controls = `
@@ -152,8 +151,9 @@
           <span class="carousel-control-next-icon" aria-hidden="true">Next</span>
           <span class="sr-only">Next</span>
           </a>`;
-        document.getElementById("results").innerHTML += '<div id="map" class="carousel slide">' + legList + controls + '</div>';
-
-        $('.carousel').carousel('pause');
+        // a button to set the time
+        var stampButton = '<button type="button" class="btn btn-primary btn-lg btn-block" onClick="stampActive();">Stamp</button>'
+        document.getElementById("results").innerHTML += '<div id="map" class="carousel slide">' + legList + controls + '</div><br>' + stampButton;
+        $('.carousel').carousel({interval: 0});
     }
 
