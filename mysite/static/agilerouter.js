@@ -130,11 +130,19 @@
 
         // loop over addresses an build legs
         var legList = '<div class="carousel-inner">';
+        var postcode = /[Ll]\d{1,2}\s*\d{1,2}\w{2}/;
         for (var i = 1; i < addresses.length; ++i) {
             var a = addresses[i - 1].replace(" ", "+");
             var b = addresses[i].replace(" ", "+");
+
+            // filter out the postcodes
+            var pcode_a = postcode.exec(a)[0];
+            var pcode_b = postcode.exec(b)[0];
+            pcode_a = (pcode_a.replace(/\s/g, "")).toUpperCase();
+            pcode_b = (pcode_b.replace(/\s/g, "")).toUpperCase();
+
             var leg = "https://www.google.co.uk/maps/dir/" + a + "/" + b + "/data=!4m2!4m1!3e1"
-            var legLink = '<a href="' + leg + '" target="_blank" id="leg' + i + '" role="button">' + "Leg " + i + '</a>'
+            var legLink = '<a href="' + leg + '" target="_blank" id="leg' + i + '" role="button">' + pcode_a + "&#8594;" + pcode_b + '</a>'
             var divitem = '<div class="carousel-item';
             if (i == 1) {
                 divitem += ' active';
@@ -144,16 +152,25 @@
         legList += '</div>';
         var controls = `
           <a class="carousel-control-prev" href="#map" role="button" data-slide="prev">
-          <span class="carousel-control-prev-icon" aria-hidden="true">Previous</span>
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
           <span class="sr-only">Previous</span>
           </a>
           <a class="carousel-control-next" href="#map" role="button" data-slide="next">
-          <span class="carousel-control-next-icon" aria-hidden="true">Next</span>
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
           <span class="sr-only">Next</span>
           </a>`;
         // a button to set the time
         var stampButton = '<button type="button" class="btn btn-primary btn-lg btn-block" onClick="stampActive();">Stamp</button>'
-        document.getElementById("results").innerHTML += '<div id="map" class="carousel slide">' + legList + controls + '</div><br>' + stampButton;
+
+        var indicators = `
+            <ol class="carousel-indicators">
+            <li data-target="#map" data-slide-to="0" class="active"></li>`;
+        for (var i = 1; i < addresses.length - 1; ++i) {
+            indicators += '<li data-target="#map" data-slide-to="' + i + '"></li>';
+        }
+        indicators += '</ol>';
+
+        document.getElementById("results").innerHTML += '<div id="map" class="carousel slide">' + legList + controls + indicators + '</div><div class="stamp">' + stampButton + '</div>';
         $('.carousel').carousel({interval: 0});
     }
 

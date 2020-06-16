@@ -1,6 +1,17 @@
 .carousel-control-next-icon,
-.carousel-control-prev-icon {
+.carousel-control-prev-icon,
+.carousel-indicators {
   filter: invert(1);
+}
+
+.carousel-indicators li {
+    width: 10px;
+    height: 10px;
+    border-radius: 100%;
+}
+
+.carousel-indicators {
+    bottom: -30px;
 }
 
 .maplink {
@@ -10,4 +21,11 @@
     font-size: 150%;
     font-weight: bold;
 
+    text-align: center;
+
+}
+
+.stamp {
+    position: relative;
+    bottom: -40px;
 }
