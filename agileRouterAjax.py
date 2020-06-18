@@ -21,20 +21,21 @@ def main(adrInput, useOneWay, progress=None):
     if len(addresses) <= 1:
         return addresses and addresses[0] or "Error in input?"
 
-    routeOnGoogle = route(addresses, useOneWay, progress)
-    output = []
+    res = route(addresses, useOneWay, progress)
+    jsonRes = {"route":[], "addresses":[], "notfound":[]}
     for ix in range(len(addresses)):
-        if routeOnGoogle["path"]:
-            i = routeOnGoogle["path"][ix]
+        if res["path"]:
+            i = res["path"][ix]
         else:
             i = ix
         a = addresses[i]
-        if i in routeOnGoogle["not found"]:
-            output.append("%s NOT FOUND" % a)
+        jsonRes["addresses"].append(a)
+        if i in res["not found"]:
+            jsonRes["notfound"].append(i)
         else:
-            output.append(a)
+            jsonRes["route"].append(i)
 
-    return(";\n".join(output))
+    return(jsonRes)
 
 if __name__ == "__main__":
     addresses = """

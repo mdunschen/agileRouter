@@ -5,7 +5,7 @@ sys.path.append('/home/agile')
 
 from agileRouterAjax import main
 
-from flask import Flask, request, redirect, url_for
+from flask import Flask, request, redirect, url_for, jsonify
 from flask import render_template
 import flask_login
 
@@ -58,7 +58,6 @@ class Progress:
 @app.route('/router', methods=['GET', 'POST'])
 def router():
     adrIn = None
-    adrOut = ""
     if request.method == 'POST' and 'adresses' in request.form:
         adrIn = request.form.get('adresses')
         useOneWay = request.form.get('oneway') == "1"
@@ -67,8 +66,7 @@ def router():
         user = User(getUniqId(8))
         flask_login.login_user(user)
         p = Progress(flask_login.current_user.progressFn)
-        adrOut = main(adrIn, useOneWay, p)
-        return adrOut
+        return jsonify(main(adrIn, useOneWay, p))
 
     elif request.method == 'GET' and 'getprogress' in request.args:
         # need to get the progress file and read last entry

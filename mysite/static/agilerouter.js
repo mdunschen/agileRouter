@@ -63,8 +63,29 @@
 
     function onReceiveResult(txt) {
         resultReceived.changeStatus(true);
-        updateTextEdit(txt, true);
-        buildMapLinks();
+        // txt is a json string that needs dismantling now for the text edit
+        var obj = JSON.parse(txt)
+        // check if we have anything in "notfound"
+        var nf = obj.notfound.length > 0;
+        if (nf == 0) {
+            // just get the addresses and join up
+            var adr = obj.addresses;
+            updateTextEdit(adr.join(';\n'), true);
+            buildMapLinks();
+        } else {
+            // a number of addresses have not been found,
+            // build the list again and mark those not found
+            var adr = obj.addresses;
+            var adrOut = new Array();
+            for (var i = 0; i < adr.length; i++) {
+                // is this address unkown?
+                adrOut[i] = adr[i]
+                if (obj.notfound.includes(i)) {
+                    adrOut[i] += " NOT FOUND";
+                }
+            }
+            updateTextEdit(adrOut.join(';\n'), true);
+        }
     }
 
     function submitAdresses() {
