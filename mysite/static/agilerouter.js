@@ -88,9 +88,15 @@
         }
     }
 
+    function filterComments(adr) {
+        // this is meant to filter out all comments
+        return adr;
+    }
+
     function submitAdresses() {
+        var filteredAdresses = filterComments(document.getElementById("adresses").value);
         var adr = "adresses=";
-        var data = adr.concat(encodeURI(document.getElementById("adresses").value));
+        var data = adr.concat(encodeURI(filteredAdresses));
         var oneway = "oneway=";
         var val = document.getElementById("oneway").checked ? "1" : "0";
         data = data.concat("&oneway=", encodeURI(val));
