@@ -21,7 +21,7 @@
         document.getElementById("adresses").value += txt;
     }
 
-    function request(type, url, data, callback) {
+    function request(type, url, data, callback, userdata) {
         var req = new XMLHttpRequest();
         req.open(type, url, true);
         if (data != false) {
@@ -29,7 +29,7 @@
         }
         req.onreadystatechange = function() {
             if (this.readyState == 4 && this.status == 200) {
-                callback(req.responseText);
+                callback(req.responseText, userdata);
             }
         }
 
@@ -40,7 +40,7 @@
         }
     }
 
-    function reportProgress(txt) {
+    function reportProgress(txt, t) {
         if (resultReceived.getStatus() == false) {
             updateTextEdit(txt);
         }
@@ -57,11 +57,11 @@
 
     function requestProgress() {
         if (resultReceived.getStatus() == false) {
-            request('GET', '/router?getprogress', false, reportProgress);
+            request('GET', '/router?getprogress', false, reportProgress, null);
         }
     }
 
-    function onReceiveResult(txt) {
+    function onReceiveResult(txt, comments) {
         resultReceived.changeStatus(true);
         // txt is a json string that needs dismantling now for the text edit
         var obj = JSON.parse(txt)
@@ -71,7 +71,7 @@
             // just get the addresses and join up
             var adr = obj.addresses;
             updateTextEdit(adr.join(';\n'), true);
-            buildMapLinks();
+            buildMapLinks(comments, obj.route);
         } else {
             // a number of addresses have not been found,
             // build the list again and mark those not found
@@ -89,19 +89,42 @@
     }
 
     function filterComments(adr) {
-        // this is meant to filter out all comments
-        return adr;
+        // split at ';'
+        var adrList = adr.split(';');
+
+        var comments = new Array();
+        var filteredAdresses = new Array();
+        var commentPattern = /<.*?>/g;
+        for (var i = 0; i < adrList.length; ++i) {
+            var a = adrList[i].trim();
+            // now strip out all comments from a and save in filteredAdresses.
+            var f = a;
+            comments[i] = new Array();
+            var c;
+            var ic = 0;
+            while ((c = commentPattern.exec(a)) != null) {
+                comments[i][ic++] = c[0].substring(1, c[0].length - 2); // strip out the angulars
+                var s = f.indexOf(c[0]);
+                var e = s + c[0].length;
+                f = f.substring(0, s - 1) + f.substring(e);
+            }
+            filteredAdresses[i] = f;
+        }
+
+        return [filteredAdresses.join(';'), comments];
     }
 
     function submitAdresses() {
-        var filteredAdresses = filterComments(document.getElementById("adresses").value);
+        var res = filterComments(document.getElementById("adresses").value);
+        var filteredAdresses = res[0];
+        var comments = res[1];
         var adr = "adresses=";
         var data = adr.concat(encodeURI(filteredAdresses));
         var oneway = "oneway=";
         var val = document.getElementById("oneway").checked ? "1" : "0";
         data = data.concat("&oneway=", encodeURI(val));
         updateTextEdit("", true);
-        request('POST', '/router', data, onReceiveResult);
+        request('POST', '/router', data, onReceiveResult, comments);
     }
 
     function loadProgress() {
@@ -147,7 +170,7 @@
         });
     }
 
-    function buildMapLinks() {
+    function buildMapLinks(comments, route) {
         // we read the data from the text edit and build links between each pair
         var googleMapDirUrl = "https://www.google.co.uk/maps/dir/%s/%s/data=!4m2!4m1!3e1"
 
@@ -170,11 +193,18 @@
 
             var leg = "https://www.google.co.uk/maps/dir/" + a + "/" + b + "/data=!4m2!4m1!3e1"
             var legLink = '<a href="' + leg + '" target="_blank" id="leg' + i + '" role="button">' + pcode_a + "&#8594;" + pcode_b + '</a>'
+            var ir = route[i];
+            if (comments[ir].length > 0) {
+                legLink += `<br><p>` + comments[ir].join(', ') + `</p>`;
+            }
             var divitem = '<div class="carousel-item';
             if (i == 1) {
                 divitem += ' active';
             }
-            legList += divitem + '"><div class="maplink">' + legLink + '</div></div>';
+            legList += divitem + '"><div class="maplink">' + legLink + '</div>';
+
+
+            legList += '</div>';
         }
         legList += '</div>';
         var controls = `

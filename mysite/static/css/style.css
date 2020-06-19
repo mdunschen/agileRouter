@@ -5,27 +5,34 @@
 }
 
 .carousel-indicators li {
-    width: 10px;
-    height: 10px;
+    width: 5px;
+    height: 5px;
     border-radius: 100%;
 }
 
 .carousel-indicators {
-    bottom: -30px;
+    bottom: -60px;
 }
 
 .maplink {
     margin:auto;
     width:50%;
 
-    font-size: 150%;
-    font-weight: bold;
-
     text-align: center;
 
 }
 
+.maplink a {
+    font-size: 150%;
+    font-weight: bold;
+
+}
+
+.maplink p {
+}
+
+
 .stamp {
     position: relative;
-    bottom: -40px;
+    bottom: -60px;
 }
