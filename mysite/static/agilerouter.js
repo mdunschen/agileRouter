@@ -67,24 +67,26 @@
         var obj = JSON.parse(txt)
         // check if we have anything in "notfound"
         var nf = obj.notfound.length > 0;
-        if (nf == 0) {
-            // just get the addresses and join up
-            var adr = obj.addresses;
-            updateTextEdit(adr.join(';\n'), true);
-            buildMapLinks(comments, obj.route);
-        } else {
-            // a number of addresses have not been found,
-            // build the list again and mark those not found
-            var adr = obj.addresses;
-            var adrOut = new Array();
-            for (var i = 0; i < adr.length; i++) {
-                // is this address unkown?
-                adrOut[i] = adr[i]
-                if (obj.notfound.includes(i)) {
-                    adrOut[i] += " NOT FOUND";
-                }
+        var adr = obj.addresses;
+        var adrOut = new Array();
+        for (var i = 0; i < adr.length; i++) {
+            // is this address unkown?
+            adrOut[i] = adr[i]
+            if (obj.notfound.includes(i)) {
+                adrOut[i] += " NOT FOUND";
             }
-            updateTextEdit(adrOut.join(';\n'), true);
+            var ix = i;
+            if (obj.route.length > 0) {
+                ix = obj.route[ix];
+            }
+            var c = comments[ix];
+            if (c.length > 0) {
+                adrOut[i] += ' /' + c.join(', ') + '/';
+            }
+        }
+        updateTextEdit(adrOut.join(';\n'), true);
+        if (nf == 0) {
+            buildMapLinks(comments, obj.route);
         }
     }
 
@@ -94,19 +96,27 @@
 
         var comments = new Array();
         var filteredAdresses = new Array();
-        var commentPattern = /<.*?>/g;
+        var commentPattern = /\/.*?\//g;
         for (var i = 0; i < adrList.length; ++i) {
             var a = adrList[i].trim();
             // now strip out all comments from a and save in filteredAdresses.
+            // test we have zero or an even number of '/'
             var f = a;
             comments[i] = new Array();
-            var c;
-            var ic = 0;
-            while ((c = commentPattern.exec(a)) != null) {
-                comments[i][ic++] = c[0].substring(1, c[0].length - 2); // strip out the angulars
-                var s = f.indexOf(c[0]);
-                var e = s + c[0].length;
-                f = f.substring(0, s - 1) + f.substring(e);
+            var n = 0;
+            var cc = f.match(/\//g);
+            if (cc != null) {
+                n = cc.length;
+            }
+            if (n % 2 == 0) { // expect these in pairs
+                var c;
+                var ic = 0;
+                while ((c = commentPattern.exec(a)) != null) {
+                    comments[i][ic++] = ((c[0].substring(1, c[0].length - 1)).replace(',', '')).trim(); // strip out the '/'
+                    var s = f.indexOf(c[0]);
+                    var e = s + c[0].length;
+                    f = f.substring(0, s) + f.substring(e);
+                }
             }
             filteredAdresses[i] = f;
         }
@@ -150,6 +160,21 @@
         document.getElementById("results").innerHTML = "";
         submitAdresses();
         loadProgress();
+    }
+
+    function navigate() {
+        var res = filterComments(document.getElementById("adresses").value);
+        var filteredAdresses = res[0];
+        var comments = res[1];
+
+        var route = new Array();
+        for (var i = 0; i < filteredAdresses.length; i++) {
+            route[i] = i;
+        }
+
+        document.getElementById("results").innerHTML = "";
+        buildMapLinks(comments, route);
+
     }
 
     function stampActive() {
