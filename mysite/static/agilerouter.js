@@ -37,6 +37,26 @@
         }
     }
 
+    class GeoExtractor {
+        constructor() {
+            this.patternLatLon = /.*lat?[\s,:]([-0-9.]+)[,\s]*lon?[\s,:]([-0-9.]+)/i;
+            this.patternLonLat = /.*lon?[\s,:]([-0-9.]+)[,\s]*lat?[\s,:]([-0-9.]+)/i;
+        }
+
+
+        extractForGMap(loc) {
+            var m = this.patternLatLon.exec(loc);
+            if (m != null && m.length == 3) {
+                return(m.slice(1,3).join(','));
+            }
+            m = this.patternLonLat.exec(loc);
+            if (m != null && m.length == 3) {
+                return(m.slice(1,3).reverse().join(','));
+            }
+            return null;
+        }
+    }
+
 
     var resultReceived = new StateChanges();
 
@@ -106,11 +126,11 @@
                 adrOut[i] += " NOT FOUND";
             }
             var ix = i;
-            if (obj.route.length > 0) {
+            if (0 < obj.route.length && ix < obj.route.length) {
                 ix = obj.route[ix];
             }
             var c = comments[ix];
-            if (c.length > 0) {
+            if (0 < c.length) {
                 adrOut[i] += ' /' + c.join(', ') + '/';
             }
         }
@@ -230,22 +250,42 @@
 
         document.getElementById("results").innerHTML += "<br><br><strong>Legs on google maps:</strong><br>";
 
-        var extractor = new PostCodeExtractor();
+        var pc = new PostCodeExtractor();
+        var geo = new GeoExtractor();
 
         // loop over addresses an build legs
         var legList = '<div class="carousel-inner">';
         for (var i = 1; i < addresses.length; ++i) {
-            var a = addresses[i - 1].replace(/\s/g, "+");
-            var b = addresses[i].replace(/\s/g, "+");
 
-            // filter out the postcodes
-            var pcode_a = extractor.extractPostCode(addresses[i - 1]);
-            if (pcode_a == null) {
-                pcode_a = addresses[i - 1];
+            var a;
+            var b;
+
+
+            var pcode_a;
+            var pcode_b;
+
+            var geo_a = geo.extractForGMap(addresses[i - 1]);
+            if (geo_a != null) {
+                a = geo_a;
+                pcode_a = geo_a;
+            } else {
+                a = addresses[i - 1].replace(/\s/g, "+");
+                pcode_a = pc.extractPostCode(addresses[i - 1]);
+                if (pcode_a == null) {
+                    pcode_a = addresses[i - 1];
+                }
             }
-            var pcode_b = extractor.extractPostCode(addresses[i]);
-            if (pcode_b == null) {
-                pcode_b = addresses[i];
+
+            var geo_b = geo.extractForGMap(addresses[i]);
+            if (geo_b != null) {
+                b = geo_b;
+                pcode_b = geo_b;
+            } else {
+                b = addresses[i].replace(/\s/g, "+");
+                pcode_b = pc.extractPostCode(addresses[i]);
+                if (pcode_b == null) {
+                    pcode_b = addresses[i];
+                }
             }
 
             var leg = "https://www.google.co.uk/maps/dir/" + a + "/" + b + "/data=!4m2!4m1!3e1"

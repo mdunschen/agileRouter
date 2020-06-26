@@ -3,6 +3,8 @@ from urllib.parse import urlencode
 import json
 import itertools
 
+import re
+
 import pickle
 
 
@@ -88,6 +90,18 @@ googleMapDirUrl = "https://www.google.co.uk/maps/dir/%s/%s/data=!4m2!4m1!3e1"
 # https://www.google.co.uk/maps/dir/14+Woodrock+Rd,+Liverpool+L25+8RE/48+Cairns+St,+Liverpool+L8+2UW/
 
 def getLonLat(place):
+    # place could be a geolocation already, just do some parsing
+    try:
+        m = re.match(".*lat?[\s,:]([-0-9.]+)[,\s]*lon?[\s,:]([-0-9.]+)", place.lower())
+        if m and m.group(0) and m.group(1):
+            return [float(m.group(2)), float(m.group(1))]
+
+        m = re.match(".*lon?[\s,:]([-0-9.]+)[,\s]*lat?[\s,:]([-0-9.]+)", place.lower())
+        if m and m.group(0) and m.group(1):
+            return [float(m.group(1)), float(m.group(2))]
+    except ValueError:
+        pass
+
     r = request.urlopen(cycGeoCoder % (cyclestreetskey, urlencode({"q": place}))).read().decode('utf-8')
     r = json.loads(r)
     if (len(r["features"]) == 1):
