@@ -1,3 +1,10 @@
+    window.onbeforeunload = function() {
+        return "Do you really want to leave our brilliant application?";
+    };
+
+
+
+
     var cyclistArtIn = ["------__o", "-----_\ <,_", "----(_)/ (_)"];
     var cyclistArt = cyclistArtIn.slice(0, 3);
 
@@ -14,6 +21,22 @@
             return this.status;
         }
     }
+
+    class PostCodeExtractor {
+        constructor() {
+            this.pattern = /\w{1,2}\d{1,2}\s*\d{1,2}\w{2}/i;
+        }
+
+
+        extractPostCode(adr) {
+            var match = this.pattern.exec(adr);
+            if (match != null && match.length > 0) {
+                return (match[0].replace(/\s/g, "")).toUpperCase();
+            }
+            return null;
+        }
+    }
+
 
     var resultReceived = new StateChanges();
 
@@ -52,6 +75,13 @@
         } else {
             document.getElementById("adresses").value += txt;
         }
+
+        // adjust rows
+        var rows = ((document.getElementById("adresses").value).split('\n')).length;
+        var r = Math.max(3, Math.min(8, rows));
+        if (r != document.getElementById("adresses").rows) {
+            document.getElementById("adresses").rows = r;
+        }
     }
 
 
@@ -86,7 +116,7 @@
         }
         updateTextEdit(adrOut.join(';\n'), true);
         if (nf == 0) {
-            buildMapLinks(comments, obj.route);
+            buildMapLinks(adr, comments, obj.route);
         }
     }
 
@@ -121,7 +151,7 @@
             filteredAdresses[i] = f;
         }
 
-        return [filteredAdresses.join(';'), comments];
+        return [filteredAdresses, comments];
     }
 
     function submitAdresses() {
@@ -129,7 +159,7 @@
         var filteredAdresses = res[0];
         var comments = res[1];
         var adr = "adresses=";
-        var data = adr.concat(encodeURI(filteredAdresses));
+        var data = adr.concat(encodeURI(filteredAdresses.join(';')));
         var oneway = "oneway=";
         var val = document.getElementById("oneway").checked ? "1" : "0";
         data = data.concat("&oneway=", encodeURI(val));
@@ -173,12 +203,11 @@
         }
 
         document.getElementById("results").innerHTML = "";
-        buildMapLinks(comments, route);
+        buildMapLinks(filteredAdresses, comments, route);
 
     }
 
     function stampActive() {
-
         $(".carousel-item").each(function(i) {
             if ($(this).hasClass("active")) {
                 options = {
@@ -195,26 +224,29 @@
         });
     }
 
-    function buildMapLinks(comments, route) {
+    function buildMapLinks(addresses, comments, route) {
         // we read the data from the text edit and build links between each pair
         var googleMapDirUrl = "https://www.google.co.uk/maps/dir/%s/%s/data=!4m2!4m1!3e1"
 
-        var addresses = document.getElementById("adresses").value.split(';');
-
         document.getElementById("results").innerHTML += "<br><br><strong>Legs on google maps:</strong><br>";
+
+        var extractor = new PostCodeExtractor();
 
         // loop over addresses an build legs
         var legList = '<div class="carousel-inner">';
-        var postcode = /[Ll]\d{1,2}\s*\d{1,2}\w{2}/;
         for (var i = 1; i < addresses.length; ++i) {
-            var a = addresses[i - 1].replace(" ", "+");
-            var b = addresses[i].replace(" ", "+");
+            var a = addresses[i - 1].replace(/\s/g, "+");
+            var b = addresses[i].replace(/\s/g, "+");
 
             // filter out the postcodes
-            var pcode_a = postcode.exec(a)[0];
-            var pcode_b = postcode.exec(b)[0];
-            pcode_a = (pcode_a.replace(/\s/g, "")).toUpperCase();
-            pcode_b = (pcode_b.replace(/\s/g, "")).toUpperCase();
+            var pcode_a = extractor.extractPostCode(addresses[i - 1]);
+            if (pcode_a == null) {
+                pcode_a = addresses[i - 1];
+            }
+            var pcode_b = extractor.extractPostCode(addresses[i]);
+            if (pcode_b == null) {
+                pcode_b = addresses[i];
+            }
 
             var leg = "https://www.google.co.uk/maps/dir/" + a + "/" + b + "/data=!4m2!4m1!3e1"
             var legLink = '<a href="' + leg + '" target="_blank" id="leg' + i + '" role="button">' + pcode_a + "&#8594;" + pcode_b + '</a>'
