@@ -14,7 +14,7 @@ ShareButton.addEventListener("click", WebShareAPI); //if you're using this with 
 function WebShareAPI() { //Button function
 
 	
-	var addresses = document.getElementById("addresses").value;
+	var addresses = document.getElementById("adresses").value;
 	const url = window.document.location.href;
 	
 	if (navigator.share) { //A test to see whether the browser supports the web share api or not
