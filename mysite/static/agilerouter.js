@@ -239,6 +239,8 @@
                 var t = $("#leg" + (i+1)).text();
                 if (t.indexOf("/") == -1) { // stamp only if it has no timestamp yet
                     $("#leg" + (i+1)).text(t + ' ' + fmt.format(d));
+                    data = "legdata=" + $("#leg" + (i+1)).text();
+                    request('POST', '/leg', data, null, null);
                 }
             }
         });
