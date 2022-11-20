@@ -5,6 +5,7 @@ AGILE_HOME = os.getenv("AGILEHOME", "/home/agile")
 sys.path.append(AGILE_HOME)
 
 from agileRouterAjax import main
+from tabledatadef import *
 
 from flask import Flask, request, redirect, url_for, jsonify
 from flask import render_template
@@ -17,7 +18,8 @@ import tempfile, shutil
 
 from sqlalchemy.orm import sessionmaker
 from tabledef import *
-engine = create_engine('sqlite:///tutorial.db', echo=True)
+user_engine = create_engine('sqlite:///tutorial.db', echo=True)
+data_engine = create_engine('sqlite:///..///routedata.db', echo=True)
 
 app = Flask(__name__)
 app.secret_key = open(os.path.join(AGILE_HOME, "mysite", "secret.key")).read()
@@ -38,7 +40,7 @@ def do_admin_login():
     POST_USERNAME = str(request.form['username'])
     POST_PASSWORD = str(request.form['password'])
 
-    Session = sessionmaker(bind=engine)
+    Session = sessionmaker(bind=user_engine)
     s = Session()
     query = s.query(User).filter(User.username.in_([POST_USERNAME]), User.password.in_([POST_PASSWORD]) )
     result = query.first()
@@ -72,11 +74,19 @@ def router():
 
 @app.route("/leg", methods=['POST'])
 def receive_leg():
+    if not session.get('logged_in'):
+        return home()
     if request.method == 'POST':
-        print("Received a leg data point, request=\n%s" % str(request))
-        print(request.form.get('legdata'))
-        print(session.keys())
-        print(session['username'])
+        #print("Received a leg data point, request=\n%s" % str(request))
+        #print(request.form.get('legdata'))
+        #print(session.keys())
+        #print(session['username'])
+        Session = sessionmaker(bind=data_engine)
+        s = Session()
+        delivery = Delivery(session['username'], request.form.get('legdata'))
+        s.add(delivery)
+        s.commit()
+        s.commit()
         return jsonify('received')
 
 
