@@ -7,10 +7,11 @@ sys.path.append(AGILE_HOME)
 from agileRouterAjax import main
 from tabledatadef import *
 
-from flask import Flask, request, redirect, url_for, jsonify
+from flask import Flask, request, redirect, url_for, jsonify, send_file
 from flask import render_template
 from flask import flash, session, abort
-import flask_login
+from werkzeug import Response
+import io
 
 import random, string
 import datetime
@@ -26,6 +27,29 @@ app.secret_key = open(os.path.join(AGILE_HOME, "mysite", "secret.key")).read()
 
 def getUniqId(N):
     return ''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=N))
+
+def object_as_dict(obj):
+    return {c.key: getattr(obj, c.key)
+            for c in inspect(obj).mapper.column_attrs}
+
+def toCSV(l):
+    r = []
+    if len(l) < 1:
+        return ''
+    l0 = l[0]
+    # get the column names
+    colnames = l0.keys()
+    r.append(','.join(colnames))
+    print("r=\n", r)
+    for ll in l:
+        vals = [str(ll[k]) for k in colnames]
+        print("vals = \n", vals)
+        r.append(','.join(vals))
+    csv = '\n'.join(r)
+    print(csv)
+    return csv
+
+
 
 @app.route('/')
 def home():
@@ -74,20 +98,34 @@ def router():
 
 @app.route("/leg", methods=['POST'])
 def receive_leg():
-    if not session.get('logged_in'):
+    if not session.get('logged_in') or 'username' not in session.keys():
         return home()
     if request.method == 'POST':
-        #print("Received a leg data point, request=\n%s" % str(request))
-        #print(request.form.get('legdata'))
-        #print(session.keys())
-        #print(session['username'])
+        u = session['username']
+        ldata = request.form.get('legdata')
         Session = sessionmaker(bind=data_engine)
         s = Session()
-        delivery = Delivery(session['username'], request.form.get('legdata'))
+        delivery = Delivery(u, ldata)
         s.add(delivery)
         s.commit()
-        s.commit()
         return jsonify('received')
+
+@app.route("/download", methods=['GET', 'POST'])
+def download_leg():
+    if not session.get('logged_in'):
+        return home()
+    if request.method == 'GET':
+        users = [u for u in request.args.get('users').split(',')]
+        Session = sessionmaker(bind=data_engine)
+        s = Session()
+        if len(users) == 1 and users[0] == '':
+          cond = True
+        else:
+          cond = Delivery.username.in_(users)
+        query = s.query(Delivery).filter(cond)
+        db = io.BytesIO(bytes(toCSV([object_as_dict(d) for d in query]), 'utf-8'))
+        return send_file(db, "text/plain", True, "deliveries.csv")
+
 
 
 @app.route('/other', methods=['GET', 'POST'])
