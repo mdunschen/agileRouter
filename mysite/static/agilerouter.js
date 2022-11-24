@@ -5,7 +5,9 @@
 
 
 
-    var cyclistArtIn = ["------__o", "-----_\ <,_", "----(_)/ (_)"];
+    var cyclistArtIn = ["------__o", 
+                        "-----_\ <,_", 
+                        "----(_)/ (_)"];
     var cyclistArt = cyclistArtIn.slice(0, 3);
 
     class StateChanges {
@@ -238,7 +240,9 @@
                 var fmt = new Intl.DateTimeFormat('en-GB', options);
                 var t = $("#leg" + (i+1)).text();
                 if (t.indexOf("/") == -1) { // stamp only if it has no timestamp yet
-                    $("#leg" + (i+1)).text(t + ' ' + fmt.format(d));
+                    $("#leg" + (i+1)).text(t + ', ' + fmt.format(d));
+
+                    // send data to server
                     data = "legdata=" + $("#leg" + (i+1)).text();
                     request('POST', '/leg', data, null, null);
                 }
@@ -257,7 +261,7 @@
 
         // loop over addresses an build legs
         var legList = '<div class="carousel-inner">';
-        for (var i = 1; i < addresses.length; ++i) {
+        for (var i = 0; i < addresses.length - 1; ++i) {
 
             var a;
             var b;
@@ -266,38 +270,38 @@
             var pcode_a;
             var pcode_b;
 
-            var geo_a = geo.extractForGMap(addresses[i - 1]);
+            var geo_a = geo.extractForGMap(addresses[i]);
             if (geo_a != null) {
                 a = geo_a;
                 pcode_a = geo_a;
             } else {
-                a = addresses[i - 1].replace(/\s/g, "+");
-                pcode_a = pc.extractPostCode(addresses[i - 1]);
+                a = addresses[i].replace(/\s/g, "+");
+                pcode_a = pc.extractPostCode(addresses[i]);
                 if (pcode_a == null) {
-                    pcode_a = addresses[i - 1];
+                    pcode_a = addresses[i];
                 }
             }
 
-            var geo_b = geo.extractForGMap(addresses[i]);
+            var geo_b = geo.extractForGMap(addresses[i + 1]);
             if (geo_b != null) {
                 b = geo_b;
                 pcode_b = geo_b;
             } else {
-                b = addresses[i].replace(/\s/g, "+");
-                pcode_b = pc.extractPostCode(addresses[i]);
+                b = addresses[i + 1].replace(/\s/g, "+");
+                pcode_b = pc.extractPostCode(addresses[i + 1]);
                 if (pcode_b == null) {
-                    pcode_b = addresses[i];
+                    pcode_b = addresses[i + 1];
                 }
             }
 
-            var leg = "https://www.google.co.uk/maps/dir/" + a + "/" + b + "/data=!4m2!4m1!3e1"
+            var leg = "https://www.google.co.uk/maps/dir/" + a + "/" + b + "/data=!4m2!4m1!3e1";
             var legLink = '<a href="' + leg + '" target="_blank" id="leg' + i + '" role="button">' + pcode_a + "&#8594;" + pcode_b + '</a>'
             var ir = route[i];
             if (comments[ir].length > 0) {
                 legLink += `<br><p>` + comments[ir].join(', ') + `</p>`;
             }
             var divitem = '<div class="carousel-item';
-            if (i == 1) {
+            if (i == 0) {
                 divitem += ' active';
             }
             legList += divitem + '"><div class="maplink">' + legLink + '</div>';
@@ -307,26 +311,32 @@
         }
         legList += '</div>';
         var controls = `
-          <a class="carousel-control-prev" href="#map" role="button" data-slide="prev">
-          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-          <span class="sr-only">Previous</span>
-          </a>
-          <a class="carousel-control-next" href="#map" role="button" data-slide="next">
-          <span class="carousel-control-next-icon" aria-hidden="true"></span>
-          <span class="sr-only">Next</span>
-          </a>`;
+            <button class="carousel-control-prev" type="button" data-bs-target="#agilemap" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#agilemap" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>`;
+
+        var indicators = `<div class="carousel-indicators">`;
+        for (var i = 0; i < addresses.length - 1; ++i) {
+            indicators += '<button type="button" data-bs-target="#agilemap" data-bs-slide-to="' + i;
+            if (i == 0) {
+                indicators += '" class="active"';
+            }
+            indicators += ' aria-label="Slide ' + i + '"></button>';
+        }
+        indicators += '</div>';
+
         // a button to set the time
         var stampButton = '<button type="button" class="btn btn-primary btn-lg btn-block" onClick="stampActive();">Stamp</button>'
 
-        var indicators = `
-            <ol class="carousel-indicators">
-            <li data-target="#map" data-slide-to="0" class="active"></li>`;
-        for (var i = 1; i < addresses.length - 1; ++i) {
-            indicators += '<li data-target="#map" data-slide-to="' + i + '"></li>';
-        }
-        indicators += '</ol>';
+        var t = '<div id="agilemap" class="carousel slide" data-bs-ride="carousel">' + indicators + legList + controls + '</div><div class="stamp">' + stampButton + '</div>';
+        alert(t);
 
-        document.getElementById("results").innerHTML += '<div id="map" class="carousel slide">' + legList + controls + indicators + '</div><div class="stamp">' + stampButton + '</div>';
+        document.getElementById("results").innerHTML += t;
         $('.carousel').carousel({interval: 0});
     }
 
