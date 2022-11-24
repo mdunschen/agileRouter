@@ -49,6 +49,27 @@ def toCSV(l):
     print(csv)
     return csv
 
+def getDataAsCSV(request):
+    users = [u for u in request.args.get('users').split(',')]
+    Session = sessionmaker(bind=data_engine)
+    s = Session()
+    if len(users) == 1 and users[0] == '':
+        cond = True
+    else:
+        cond = Delivery.username.in_(users)
+    query = s.query(Delivery).filter(cond)
+    db = io.BytesIO(bytes(toCSV([object_as_dict(d) for d in query]), 'utf-8'))
+    return send_file(db, "text/plain", True, "deliveries.csv")
+
+def registerNewUser(username, password):
+    # create a Session
+    Session = sessionmaker(bind=user_engine)
+    session = Session()
+
+    user = User(username, password)
+    session.add(user)
+    session.commit()
+
 
 
 @app.route('/')
@@ -60,8 +81,7 @@ def home():
 
 @app.route('/login', methods=['POST'])
 def do_admin_login():
-
-    POST_USERNAME = str(request.form['username'])
+    POST_USERNAME = str(request.form['email'])
     POST_PASSWORD = str(request.form['password'])
 
     Session = sessionmaker(bind=user_engine)
@@ -72,7 +92,15 @@ def do_admin_login():
         session['logged_in'] = True
         session['username'] = POST_USERNAME
     else:
-        flash('wrong password!')
+        query = s.query(User).filter(User.username.in_([POST_USERNAME]) )
+        result = query.all()
+        if result:
+            return('Wrong password')
+        else:
+            registerNewUser(POST_USERNAME, POST_PASSWORD)
+            session['logged_in'] = True
+            session['username'] = POST_USERNAME
+        
     return home()
 
 @app.route("/logout")
@@ -94,17 +122,7 @@ def router():
         return ''
 
     elif request.method == 'GET' and 'download' in request.args:
-        users = [u for u in request.args.get('users').split(',')]
-        print("users = ", users)
-        Session = sessionmaker(bind=data_engine)
-        s = Session()
-        if len(users) == 1 and users[0] == '':
-          cond = True
-        else:
-          cond = Delivery.username.in_(users)
-        query = s.query(Delivery).filter(cond)
-        db = io.BytesIO(bytes(toCSV([object_as_dict(d) for d in query]), 'utf-8'))
-        return send_file(db, "text/plain", True, "deliveries.csv")
+        return getDataAsCSV(request)
 
     return render_template("start.html", addresses="", mapRoute="")
 
@@ -128,16 +146,7 @@ def download_leg():
     if not session.get('logged_in'):
         return home()
     if request.method == 'GET':
-        users = [u for u in request.args.get('users').split(',')]
-        Session = sessionmaker(bind=data_engine)
-        s = Session()
-        if len(users) == 1 and users[0] == '':
-          cond = True
-        else:
-          cond = Delivery.username.in_(users)
-        query = s.query(Delivery).filter(cond)
-        db = io.BytesIO(bytes(toCSV([object_as_dict(d) for d in query]), 'utf-8'))
-        return send_file(db, "text/plain", True, "deliveries.csv")
+        return getDataAsCSV(request)
 
 
 
