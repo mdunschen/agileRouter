@@ -39,7 +39,7 @@ def toCSV(l):
     l0 = l[0]
     # get the column names
     colnames = l0.keys()
-    r.append(','.join(colnames))
+    r.append(','.join(colnames) + ','.join([',date', 'time']))
     print("r=\n", r)
     for ll in l:
         vals = [str(ll[k]) for k in colnames]
@@ -59,7 +59,8 @@ def getDataAsCSV(request):
         cond = Delivery.username.in_(users)
     query = s.query(Delivery).filter(cond)
     db = io.BytesIO(bytes(toCSV([object_as_dict(d) for d in query]), 'utf-8'))
-    return send_file(db, "text/plain", True, "deliveries.csv")
+    return bytes(toCSV([object_as_dict(d) for d in query]), 'utf-8')
+    #return send_file(db, "text/plain", True, "deliveries.csv")
 
 def registerNewUser(username, password):
     # create a Session
