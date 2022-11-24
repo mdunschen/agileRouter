@@ -229,6 +229,15 @@
 
     }
 
+    function onDataSaved(r, ix) {
+        var obj = JSON.parse(r);
+        alert(obj);
+        if (obj.localeCompare("received") == 0) {
+            var t = $("#leg" + (ix)).text();
+            $("#leg" + (ix)).text(t + "✔");
+        }
+    }
+
     function stampActive() {
         $(".carousel-item").each(function(i) {
             if ($(this).hasClass("active")) {
@@ -238,13 +247,13 @@
                     hour12: false };
                 var d = new Date();
                 var fmt = new Intl.DateTimeFormat('en-GB', options);
-                var t = $("#leg" + (i+1)).text();
+                var t = $("#leg" + (i)).text();
                 if (t.indexOf("/") == -1) { // stamp only if it has no timestamp yet
                     $("#leg" + (i)).text(t + ', ' + fmt.format(d));
 
                     // send data to server
                     data = "legdata=" + $("#leg" + (i)).text();
-                    request('POST', '/leg', data, null, null);
+                    request('POST', '/leg', data, onDataSaved, i);
                 }
             }
         });
