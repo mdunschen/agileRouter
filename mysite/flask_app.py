@@ -19,8 +19,8 @@ import tempfile, shutil
 
 from sqlalchemy.orm import sessionmaker
 from createUserDatabase import *
-user_engine = create_engine('sqlite:///%s///users.db' % (AGILE_HOME), echo=True)
-data_engine = create_engine('sqlite:///%s///routedata.db' % (AGILE_HOME), echo=True)
+user_engine = create_engine('sqlite:///%s///mysite///users.db' % (AGILE_HOME), echo=True)
+data_engine = create_engine('sqlite:///%s///mysite///routedata.db' % (AGILE_HOME), echo=True)
 
 app = Flask(__name__)
 app.secret_key = open(os.path.join(AGILE_HOME, "mysite", "secret.key")).read()
