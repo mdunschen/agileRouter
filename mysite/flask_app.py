@@ -5,7 +5,7 @@ AGILE_HOME = os.getenv("AGILEHOME", "/home/agile")
 sys.path.append(AGILE_HOME)
 
 from agileRouterAjax import main
-from tabledatadef import *
+from createRouteDatabase import *
 
 from flask import Flask, request, redirect, url_for, jsonify, send_file
 from flask import render_template
@@ -18,8 +18,8 @@ import datetime
 import tempfile, shutil
 
 from sqlalchemy.orm import sessionmaker
-from tabledef import *
-user_engine = create_engine('sqlite:///tutorial.db', echo=True)
+from createUserDatabase import *
+user_engine = create_engine('sqlite:///..///users.db', echo=True)
 data_engine = create_engine('sqlite:///..///routedata.db', echo=True)
 
 app = Flask(__name__)
