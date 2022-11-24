@@ -93,6 +93,19 @@ def router():
     elif request.method == 'GET' and 'getprogress' in request.args:
         return ''
 
+    elif request.method == 'GET' and 'download' in request.args:
+        users = [u for u in request.args.get('users').split(',')]
+        print("users = ", users)
+        Session = sessionmaker(bind=data_engine)
+        s = Session()
+        if len(users) == 1 and users[0] == '':
+          cond = True
+        else:
+          cond = Delivery.username.in_(users)
+        query = s.query(Delivery).filter(cond)
+        db = io.BytesIO(bytes(toCSV([object_as_dict(d) for d in query]), 'utf-8'))
+        return send_file(db, "text/plain", True, "deliveries.csv")
+
     return render_template("start.html", addresses="", mapRoute="")
 
 

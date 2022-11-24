@@ -205,6 +205,24 @@
         }
     }
 
+    function onReceiveDatabase(db) {
+        var blob = new Blob([db], {type: "text/plain"});
+        var url = window.URL.createObjectURL(blob);
+        var link = document.createElement('a');
+        document.body.appendChild(link);
+        link.style = "display: none";
+        link.href = url;
+        link.download = "database.csv";
+        link.click();
+
+        setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        link.remove(); } , 100);    
+    }
+
+    function downloadData() {
+        request('GET', '/router?download&users=', false, onReceiveDatabase, false);
+    }
 
 
     function doSubmit() {
@@ -231,7 +249,6 @@
 
     function onDataSaved(r, ix) {
         var obj = JSON.parse(r);
-        alert(obj);
         if (obj.localeCompare("received") == 0) {
             var t = $("#leg" + (ix)).text();
             $("#leg" + (ix)).text(t + "✔");
