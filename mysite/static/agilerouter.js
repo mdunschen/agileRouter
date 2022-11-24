@@ -240,10 +240,10 @@
                 var fmt = new Intl.DateTimeFormat('en-GB', options);
                 var t = $("#leg" + (i+1)).text();
                 if (t.indexOf("/") == -1) { // stamp only if it has no timestamp yet
-                    $("#leg" + (i+1)).text(t + ', ' + fmt.format(d));
+                    $("#leg" + (i)).text(t + ', ' + fmt.format(d));
 
                     // send data to server
-                    data = "legdata=" + $("#leg" + (i+1)).text();
+                    data = "legdata=" + $("#leg" + (i)).text();
                     request('POST', '/leg', data, null, null);
                 }
             }
@@ -334,7 +334,6 @@
         var stampButton = '<button type="button" class="btn btn-primary btn-lg btn-block" onClick="stampActive();">Stamp</button>'
 
         var t = '<div id="agilemap" class="carousel slide" data-bs-ride="carousel">' + indicators + legList + controls + '</div><div class="stamp">' + stampButton + '</div>';
-        alert(t);
 
         document.getElementById("results").innerHTML += t;
         $('.carousel').carousel({interval: 0});
