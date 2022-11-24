@@ -5,10 +5,15 @@
 
 
 
-    var cyclistArtIn = ["------__o", 
+    /*var cyclistArtIn = ["------__o", 
                         "-----_\ <,_", 
-                        "----(_)/ (_)"];
-    var cyclistArt = cyclistArtIn.slice(0, 3);
+                        "----(_)/ (_)"];*/
+    var cyclistArtIn = ["-------_O",
+                        "-------/    ______", 
+                        "-----_\ <,_/_____/_", 
+                        "----(_)/         (_)"];
+    var cyclistArtHeight = 4;
+    var cyclistArt = cyclistArtIn.slice(0, cyclistArtHeight);
 
     class StateChanges {
         constructor() {
@@ -100,7 +105,7 @@
 
         // adjust rows
         var rows = ((document.getElementById("adresses").value).split('\n')).length;
-        var r = Math.max(3, Math.min(8, rows));
+        var r = Math.max(5, Math.min(8, rows));
         if (r != document.getElementById("adresses").rows) {
             document.getElementById("adresses").rows = r;
         }
@@ -191,12 +196,12 @@
 
     function loadProgress() {
         if (resultReceived.getStatus() == false) {
-            cyclistArt[0] = '-' + cyclistArt[0];
-            cyclistArt[1] = '-' + cyclistArt[1];
-            cyclistArt[2] = '-' + cyclistArt[2];
+            for (var i = 0; i < cyclistArtHeight; ++i) {
+                cyclistArt[i] = '-' + cyclistArt[i];
+            }
 
             if (cyclistArt[2].length == 80) {
-                cyclistArt = cyclistArtIn.slice(0, 3);
+                cyclistArt = cyclistArtIn.slice(0, cyclistArtHeight);
             }
 
             updateTextEdit(cyclistArt.join(String.fromCharCode(10)), true);
@@ -357,7 +362,7 @@
         indicators += '</div>';
 
         // a button to set the time
-        var stampButton = '<button type="button" class="btn btn-primary btn-lg btn-block" onClick="stampActive();">Stamp</button>'
+        var stampButton = '<div class="d-grid gap-2"><button type="button" class="btn btn-primary  btn-lg" onClick="stampActive();">Stamp</button></div>';
 
         var t = '<div id="agilemap" class="carousel slide" data-bs-ride="carousel">' + indicators + legList + controls + '</div><div class="stamp">' + stampButton + '</div>';
 
