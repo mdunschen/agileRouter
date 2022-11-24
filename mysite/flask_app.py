@@ -62,6 +62,12 @@ def getDataAsCSV(request):
     return bytes(toCSV([object_as_dict(d) for d in query]), 'utf-8')
     #return send_file(db, "text/plain", True, "deliveries.csv")
 
+def clearAllData():
+    Session = sessionmaker(bind=data_engine)
+    s = Session()
+    s.query(Delivery).delete()
+    s.commit()
+
 def registerNewUser(username, password):
     # create a Session
     Session = sessionmaker(bind=user_engine)
@@ -148,6 +154,15 @@ def download_leg():
         return home()
     if request.method == 'GET':
         return getDataAsCSV(request)
+
+@app.route("/cleardatabase", methods=['GET'])
+def cleardatabase():
+    if not session.get('logged_in'):
+        return jsonify("not allowed")
+    if request.method == 'GET' and 'delete' in request.args and 'agile' in request.args:
+        clearAllData()
+        return jsonify("done")
+
 
 
 
