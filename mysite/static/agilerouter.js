@@ -143,7 +143,7 @@
         }
         updateTextEdit(adrOut.join(';\n'), true);
         if (nf == 0) {
-            buildMapLinks(adr, comments, obj.route);
+            buildMapLinks(adr, comments, obj.route, obj.distance);
         }
     }
 
@@ -243,12 +243,14 @@
         var comments = res[1];
 
         var route = new Array();
+        var distance = new Array();
         for (var i = 0; i < filteredAdresses.length; i++) {
             route[i] = i;
+            distance[i] = 0;
         }
 
         document.getElementById("results").innerHTML = "";
-        buildMapLinks(filteredAdresses, comments, route);
+        buildMapLinks(filteredAdresses, comments, route, distance);
 
     }
 
@@ -281,7 +283,11 @@
         });
     }
 
-    function buildMapLinks(addresses, comments, route) {
+    function convertToMiles(m) {
+        return (m * 0.00062137).toFixed(1);
+    }
+
+    function buildMapLinks(addresses, comments, route, distance) {
         // we read the data from the text edit and build links between each pair
         var googleMapDirUrl = "https://www.google.co.uk/maps/dir/%s/%s/data=!4m2!4m1!3e1";
 
@@ -334,7 +340,12 @@
             }
 
             var leg = "https://www.google.co.uk/maps/dir/" + a + "/" + b + "/data=!4m2!4m1!3e1";
-            var legLink = '<a href="' + leg + '" target="_blank" id="leg' + i + '" role="button">' + pcode_a + "&#8594;" + pcode_b + '</a>'
+            var legDist = '';
+            if (distance[i] > 0) {
+                legDist = ": " + convertToMiles(distance[i]) + " miles"
+            }
+
+            var legLink = '<a href="' + leg + '" target="_blank" id="leg' + i + '" role="button">' + pcode_a + "&#8594;" + pcode_b + legDist + '</a>';
             var ir = route[i];
             if (comments[ir].length > 0) {
                 legLink += `<br><p>` + comments[ir].join(', ') + `</p>`;

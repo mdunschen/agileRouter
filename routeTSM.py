@@ -166,8 +166,11 @@ def route(addresses, useOneWay, progressWriter = None):
     cost, path = r
 
     allDirs = []
+    allDistances = []
     for k, ib in enumerate(path[1:]):
         ia = path[k]
+        allDistances.append(distMatrix[ia][ib])
         allDirs.append(googleMapDirUrl % (addresses[ia].replace(' ', '+'), addresses[ib].replace(' ', '+')))
+    allDistances.append(distMatrix[path[-1]][path[0]])
     writeProgress(progressWriter, "Done.")
-    return {"result": allDirs, "path": path, "not found":[]}
+    return {"result": allDirs, "path": path, "not found":[], "distance": allDistances}
