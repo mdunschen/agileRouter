@@ -138,7 +138,7 @@
             }
             var c = comments[ix];
             if (0 < c.length) {
-                adrOut[i] += ' /' + c.join(', ') + '/';
+                adrOut[i] += ' /' + c.join('. ') + '/';
             }
         }
         updateTextEdit(adrOut.join(';\n'), true);
@@ -283,7 +283,9 @@
 
     function buildMapLinks(addresses, comments, route) {
         // we read the data from the text edit and build links between each pair
-        var googleMapDirUrl = "https://www.google.co.uk/maps/dir/%s/%s/data=!4m2!4m1!3e1"
+        var googleMapDirUrl = "https://www.google.co.uk/maps/dir/%s/%s/data=!4m2!4m1!3e1";
+
+        var oneway = document.getElementById("oneway").checked;
 
         document.getElementById("results").innerHTML += "<br><br><strong>Legs on google maps:</strong><br>";
 
@@ -292,7 +294,8 @@
 
         // loop over addresses an build legs
         var legList = '<div class="carousel-inner">';
-        for (var i = 0; i < addresses.length - 1; ++i) {
+        var loopEnd = oneway ? addresses.length - 1 : addresses.length;
+        for (var i = 0; i < loopEnd; ++i) {
 
             var a;
             var b;
@@ -313,15 +316,20 @@
                 }
             }
 
-            var geo_b = geo.extractForGMap(addresses[i + 1]);
+            var inext = i + 1;
+            if (inext == addresses.length) {
+                inext = 0; // a round trip, go back to start
+            }
+
+            var geo_b = geo.extractForGMap(addresses[inext]);
             if (geo_b != null) {
                 b = geo_b;
                 pcode_b = geo_b;
             } else {
-                b = addresses[i + 1].replace(/\s/g, "+");
-                pcode_b = pc.extractPostCode(addresses[i + 1]);
+                b = addresses[inext].replace(/\s/g, "+");
+                pcode_b = pc.extractPostCode(addresses[inext]);
                 if (pcode_b == null) {
-                    pcode_b = addresses[i + 1];
+                    pcode_b = addresses[inext];
                 }
             }
 
@@ -352,7 +360,7 @@
             </button>`;
 
         var indicators = `<div class="carousel-indicators">`;
-        for (var i = 0; i < addresses.length - 1; ++i) {
+        for (var i = 0; i < loopEnd; ++i) {
             indicators += '<button type="button" data-bs-target="#agilemap" data-bs-slide-to="' + i;
             if (i == 0) {
                 indicators += '" class="active"';
@@ -364,9 +372,15 @@
         // a button to set the time
         var stampButton = '<div class="d-grid gap-2"><button type="button" class="btn btn-primary  btn-lg" onClick="stampActive();">Stamp</button></div>';
 
-        var t = '<div id="agilemap" class="carousel slide" data-bs-ride="carousel">' + indicators + legList + controls + '</div><div class="stamp">' + stampButton + '</div>';
+        var t = '<div id="agilemap" class="carousel slide" data-bs-ride="carousel">' + 
+            indicators + legList + controls + 
+            '</div><div class="stamp">' + 
+            stampButton + 
+            '</div>';
 
         document.getElementById("results").innerHTML += t;
+
+        // stop the carousel from moving;
         $('.carousel').carousel({interval: 0});
     }
 
