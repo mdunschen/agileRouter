@@ -5,8 +5,15 @@
 
 
 
-    var cyclistArtIn = ["------__o", "-----_\ <,_", "----(_)/ (_)"];
-    var cyclistArt = cyclistArtIn.slice(0, 3);
+    /*var cyclistArtIn = ["------__o", 
+                        "-----_\ <,_", 
+                        "----(_)/ (_)"];*/
+    var cyclistArtIn = ["-------_O",
+                        "-------/    ______", 
+                        "-----_\ <,_/_____/_", 
+                        "----(_)/         (_)"];
+    var cyclistArtHeight = 4;
+    var cyclistArt = cyclistArtIn.slice(0, cyclistArtHeight);
 
     class StateChanges {
         constructor() {
@@ -98,7 +105,7 @@
 
         // adjust rows
         var rows = ((document.getElementById("adresses").value).split('\n')).length;
-        var r = Math.max(3, Math.min(8, rows));
+        var r = Math.max(5, Math.min(8, rows));
         if (r != document.getElementById("adresses").rows) {
             document.getElementById("adresses").rows = r;
         }
@@ -131,7 +138,7 @@
             }
             var c = comments[ix];
             if (0 < c.length) {
-                adrOut[i] += ' /' + c.join(', ') + '/';
+                adrOut[i] += ' /' + c.join('. ') + '/';
             }
         }
         updateTextEdit(adrOut.join(';\n'), true);
@@ -189,12 +196,12 @@
 
     function loadProgress() {
         if (resultReceived.getStatus() == false) {
-            cyclistArt[0] = '-' + cyclistArt[0];
-            cyclistArt[1] = '-' + cyclistArt[1];
-            cyclistArt[2] = '-' + cyclistArt[2];
+            for (var i = 0; i < cyclistArtHeight; ++i) {
+                cyclistArt[i] = '-' + cyclistArt[i];
+            }
 
             if (cyclistArt[2].length == 80) {
-                cyclistArt = cyclistArtIn.slice(0, 3);
+                cyclistArt = cyclistArtIn.slice(0, cyclistArtHeight);
             }
 
             updateTextEdit(cyclistArt.join(String.fromCharCode(10)), true);
@@ -203,6 +210,24 @@
         }
     }
 
+    function onReceiveDatabase(db) {
+        var blob = new Blob([db], {type: "text/plain"});
+        var url = window.URL.createObjectURL(blob);
+        var link = document.createElement('a');
+        document.body.appendChild(link);
+        link.style = "display: none";
+        link.href = url;
+        link.download = "database.csv";
+        link.click();
+
+        setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        link.remove(); } , 100);    
+    }
+
+    function downloadData() {
+        request('GET', '/router?download&users=', false, onReceiveDatabase, false);
+    }
 
 
     function doSubmit() {
@@ -227,6 +252,14 @@
 
     }
 
+    function onDataSaved(r, ix) {
+        var obj = JSON.parse(r);
+        if (obj.localeCompare("received") == 0) {
+            var t = $("#leg" + (ix)).text();
+            $("#leg" + (ix)).text(t + "✔");
+        }
+    }
+
     function stampActive() {
         $(".carousel-item").each(function(i) {
             if ($(this).hasClass("active")) {
@@ -236,9 +269,13 @@
                     hour12: false };
                 var d = new Date();
                 var fmt = new Intl.DateTimeFormat('en-GB', options);
-                var t = $("#leg" + (i+1)).text();
+                var t = $("#leg" + (i)).text();
                 if (t.indexOf("/") == -1) { // stamp only if it has no timestamp yet
-                    $("#leg" + (i+1)).text(t + ' ' + fmt.format(d));
+                    $("#leg" + (i)).text(t + ', ' + fmt.format(d));
+
+                    // send data to server
+                    data = "legdata=" + $("#leg" + (i)).text();
+                    request('POST', '/leg', data, onDataSaved, i);
                 }
             }
         });
@@ -246,7 +283,9 @@
 
     function buildMapLinks(addresses, comments, route) {
         // we read the data from the text edit and build links between each pair
-        var googleMapDirUrl = "https://www.google.co.uk/maps/dir/%s/%s/data=!4m2!4m1!3e1"
+        var googleMapDirUrl = "https://www.google.co.uk/maps/dir/%s/%s/data=!4m2!4m1!3e1";
+
+        var oneway = document.getElementById("oneway").checked;
 
         document.getElementById("results").innerHTML += "<br><br><strong>Legs on google maps:</strong><br>";
 
@@ -255,7 +294,8 @@
 
         // loop over addresses an build legs
         var legList = '<div class="carousel-inner">';
-        for (var i = 1; i < addresses.length; ++i) {
+        var loopEnd = oneway ? addresses.length - 1 : addresses.length;
+        for (var i = 0; i < loopEnd; ++i) {
 
             var a;
             var b;
@@ -264,38 +304,43 @@
             var pcode_a;
             var pcode_b;
 
-            var geo_a = geo.extractForGMap(addresses[i - 1]);
+            var geo_a = geo.extractForGMap(addresses[i]);
             if (geo_a != null) {
                 a = geo_a;
                 pcode_a = geo_a;
             } else {
-                a = addresses[i - 1].replace(/\s/g, "+");
-                pcode_a = pc.extractPostCode(addresses[i - 1]);
+                a = addresses[i].replace(/\s/g, "+");
+                pcode_a = pc.extractPostCode(addresses[i]);
                 if (pcode_a == null) {
-                    pcode_a = addresses[i - 1];
+                    pcode_a = addresses[i];
                 }
             }
 
-            var geo_b = geo.extractForGMap(addresses[i]);
+            var inext = i + 1;
+            if (inext == addresses.length) {
+                inext = 0; // a round trip, go back to start
+            }
+
+            var geo_b = geo.extractForGMap(addresses[inext]);
             if (geo_b != null) {
                 b = geo_b;
                 pcode_b = geo_b;
             } else {
-                b = addresses[i].replace(/\s/g, "+");
-                pcode_b = pc.extractPostCode(addresses[i]);
+                b = addresses[inext].replace(/\s/g, "+");
+                pcode_b = pc.extractPostCode(addresses[inext]);
                 if (pcode_b == null) {
-                    pcode_b = addresses[i];
+                    pcode_b = addresses[inext];
                 }
             }
 
-            var leg = "https://www.google.co.uk/maps/dir/" + a + "/" + b + "/data=!4m2!4m1!3e1"
+            var leg = "https://www.google.co.uk/maps/dir/" + a + "/" + b + "/data=!4m2!4m1!3e1";
             var legLink = '<a href="' + leg + '" target="_blank" id="leg' + i + '" role="button">' + pcode_a + "&#8594;" + pcode_b + '</a>'
             var ir = route[i];
             if (comments[ir].length > 0) {
                 legLink += `<br><p>` + comments[ir].join(', ') + `</p>`;
             }
             var divitem = '<div class="carousel-item';
-            if (i == 1) {
+            if (i == 0) {
                 divitem += ' active';
             }
             legList += divitem + '"><div class="maplink">' + legLink + '</div>';
@@ -305,26 +350,37 @@
         }
         legList += '</div>';
         var controls = `
-          <a class="carousel-control-prev" href="#map" role="button" data-slide="prev">
-          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-          <span class="sr-only">Previous</span>
-          </a>
-          <a class="carousel-control-next" href="#map" role="button" data-slide="next">
-          <span class="carousel-control-next-icon" aria-hidden="true"></span>
-          <span class="sr-only">Next</span>
-          </a>`;
-        // a button to set the time
-        var stampButton = '<button type="button" class="btn btn-primary btn-lg btn-block" onClick="stampActive();">Stamp</button>'
+            <button class="carousel-control-prev" type="button" data-bs-target="#agilemap" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#agilemap" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>`;
 
-        var indicators = `
-            <ol class="carousel-indicators">
-            <li data-target="#map" data-slide-to="0" class="active"></li>`;
-        for (var i = 1; i < addresses.length - 1; ++i) {
-            indicators += '<li data-target="#map" data-slide-to="' + i + '"></li>';
+        var indicators = `<div class="carousel-indicators">`;
+        for (var i = 0; i < loopEnd; ++i) {
+            indicators += '<button type="button" data-bs-target="#agilemap" data-bs-slide-to="' + i;
+            if (i == 0) {
+                indicators += '" class="active"';
+            }
+            indicators += ' aria-label="Slide ' + i + '"></button>';
         }
-        indicators += '</ol>';
+        indicators += '</div>';
 
-        document.getElementById("results").innerHTML += '<div id="map" class="carousel slide">' + legList + controls + indicators + '</div><div class="stamp">' + stampButton + '</div>';
+        // a button to set the time
+        var stampButton = '<div class="d-grid gap-2"><button type="button" class="btn btn-primary  btn-lg" onClick="stampActive();">Stamp</button></div>';
+
+        var t = '<div id="agilemap" class="carousel slide" data-bs-ride="carousel">' + 
+            indicators + legList + controls + 
+            '</div><div class="stamp">' + 
+            stampButton + 
+            '</div>';
+
+        document.getElementById("results").innerHTML += t;
+
+        // stop the carousel from moving;
         $('.carousel').carousel({interval: 0});
     }
 
