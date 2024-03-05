@@ -71,11 +71,24 @@ def clearAllData():
 def registerNewUser(username, password):
     # create a Session
     Session = sessionmaker(bind=user_engine)
-    session = Session()
+    s = Session()
 
     user = User(username, password)
-    session.add(user)
-    session.commit()
+    s.add(user)
+    s.commit()
+
+def resetPasswordForUser(user, password):
+    # create a Session
+    Session = sessionmaker(bind=user_engine)
+    s = Session()
+    query = s.query(User).filter(User.username.in_([user]) )
+    result = query.first()
+    if result:
+        resetUser = User(user, password)
+        s.delete(result)
+        s.add(resetUser)
+        s.commit()
+
 
 
 
@@ -162,6 +175,18 @@ def cleardatabase():
     if request.method == 'GET' and 'delete' in request.args and 'agile' in request.args:
         clearAllData()
         return jsonify("done")
+
+@app.route("/resetpassword", methods=['GET'])
+def resetpassword():
+    if not session.get('logged_in') and 'user' in request.args:
+        username = request.args.get('user')
+    else:
+        username = session['username']
+
+    # reset the password for this user
+    newpassword = request.args['newpassword']
+    resetPasswordForUser(username, newpassword)
+    return home()
 
 
 
